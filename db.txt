@@ -1,0 +1,99 @@
+-- Создание таблицы издателей
+CREATE TABLE publishers (
+    publisher_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    address TEXT,
+    phone VARCHAR(20),
+    email VARCHAR(100)
+);
+
+-- Создание таблицы жанров
+CREATE TABLE genres (
+    genre_id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT
+);
+
+-- Создание таблицы авторов
+CREATE TABLE authors (
+    author_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    birth_date DATE,
+    biography TEXT
+);
+
+-- Создание таблицы книг
+CREATE TABLE books (
+    book_id SERIAL PRIMARY KEY,
+    isbn VARCHAR(20) UNIQUE NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    year_published INT,
+    publisher_id INT REFERENCES publishers(publisher_id),
+    page_count INT,
+    description TEXT
+);
+
+-- Связующая таблица для связи многие-ко-многим между книгами и авторами
+CREATE TABLE book_authors (
+    book_id INT REFERENCES books(book_id) ON DELETE CASCADE,
+    author_id INT REFERENCES authors(author_id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, author_id)
+);
+
+-- Связующая таблица для связи многие-ко-многим между книгами и жанрами
+CREATE TABLE book_genres (
+    book_id INT REFERENCES books(book_id) ON DELETE CASCADE,
+    genre_id INT REFERENCES genres(genre_id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, genre_id)
+);
+
+-- Создание таблицы экземпляров книг
+CREATE TABLE book_copies (
+    copy_id SERIAL PRIMARY KEY,
+    book_id INT NOT NULL REFERENCES books(book_id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'available',
+    location VARCHAR(50),
+    purchase_date DATE,
+    price DECIMAL(10,2)
+);
+
+-- Создание таблицы читателей
+CREATE TABLE readers (
+    reader_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20),
+    registration_date DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+-- Создание таблицы библиотечных карт (связь один-к-одному с читателями)
+CREATE TABLE library_cards (
+    card_id SERIAL PRIMARY KEY,
+    reader_id INT UNIQUE NOT NULL REFERENCES readers(reader_id) ON DELETE CASCADE,
+    issue_date DATE NOT NULL,
+    expiry_date DATE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Создание таблицы выдачи книг
+CREATE TABLE book_loans (
+    loan_id SERIAL PRIMARY KEY,
+    copy_id INT NOT NULL REFERENCES book_copies(copy_id),
+    reader_id INT NOT NULL REFERENCES readers(reader_id),
+    loan_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    due_date DATE NOT NULL,
+    return_date DATE,
+    status VARCHAR(20) DEFAULT 'on loan'
+);
+
+-- Создание таблицы резервирований
+CREATE TABLE reservations (
+    reservation_id SERIAL PRIMARY KEY,
+    book_id INT NOT NULL REFERENCES books(book_id),
+    reader_id INT NOT NULL REFERENCES readers(reader_id),
+    reservation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expiry_date TIMESTAMP NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active'
+);
