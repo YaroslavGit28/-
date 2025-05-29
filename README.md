@@ -99,3 +99,5 @@ dotnet run
 - Dependency Injection
 - Service Pattern
 
+## Проект
+**Проект содержется в ветке master**
